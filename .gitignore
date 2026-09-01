@@ -4,6 +4,8 @@ build/
 target/
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
+!backend/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.zip
 gradle-8.10.2/

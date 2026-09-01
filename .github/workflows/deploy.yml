@@ -13,11 +13,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. JDK 17 설정
-      - name: Set up JDK 17
+      # 2. JDK 21 설정 (build.gradle의 Java 21 설정과 일치)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       # 3. Gradle 빌드 (backend 디렉터리 기준)
@@ -25,7 +25,7 @@ jobs:
         working-directory: ./backend
         run: |
           chmod +x ./gradlew
-          ./gradlew clean bootJar -x test
+          ./gradlew clean bootJar -x test --no-daemon
 
       # 4. Docker Hub 로그인
       - name: Login to Docker Hub
@@ -42,7 +42,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/bus-tracker-backend:latest
 
-      # 6. GCP 서버에 SSH 접속 후 배포 (SCP 대신 SSH 내에서 docker-compose.yml 생성 및 실행)
+      # 6. GCP 서버에 SSH 접속 후 배포
       - name: Deploy to GCP VM via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -55,7 +55,7 @@ jobs:
             cd ~/app
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             
-            # docker-compose.yml 파일 직접 생성
+            # docker-compose.yml 작성
             cat << 'EOF' > docker-compose.yml
             version: '3.8'
 

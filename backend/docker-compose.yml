@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest
+    container_name: bus-tracker-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod

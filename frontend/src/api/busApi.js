@@ -1,0 +1,51 @@
+﻿import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:8080/api',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+export const busApi = {
+  // 정류장 검색
+  searchStations(keyword = '') {
+    return api.get('/stations', { params: { keyword } });
+  },
+
+  // 특정 정류장 정보 단건 조회
+  getStation(stationId) {
+    return api.get(`/stations/${stationId}`);
+  },
+
+  // 특정 정류장 경유 버스 목록 및 실시간 도착정보 조회
+  getStationBuses(stationId) {
+    return api.get(`/stations/${stationId}/buses`);
+  },
+
+  // 저장된 버스(북마크) 목록 조회 (실시간 도착정보 포함)
+  getBookmarks() {
+    return api.get('/bookmarks');
+  },
+
+  // 관심 버스 등록
+  addBookmark(data) {
+    return api.post('/bookmarks', data);
+  },
+
+  // 관심 버스 삭제 (ID 기준)
+  deleteBookmark(id) {
+    return api.delete(`/bookmarks/${id}`);
+  },
+
+  // 관심 버스 삭제 (정류장+노선 기준)
+  deleteBookmarkByRoute(stationId, busRouteId) {
+    return api.delete(`/bookmarks/station/${stationId}/route/${busRouteId}`);
+  },
+
+  // 전체 등록 버스 실시간 도착정보 새로고침
+  refreshArrivals() {
+    return api.get('/bookmarks/arrivals');
+  },
+};

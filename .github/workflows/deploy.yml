@@ -42,18 +42,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/bus-tracker-backend:latest
 
-      # 6. GCP 서버로 docker-compose.yml 전송 (SCP)
-      - name: Copy docker-compose.yml to GCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.GCP_HOST }}
-          username: ${{ secrets.GCP_USERNAME }}
-          key: ${{ secrets.GCP_SSH_KEY }}
-          source: "backend/docker-compose.yml"
-          target: "~/app/"
-          strip_components: 1
-
-      # 7. GCP 서버에 SSH 접속 후 새 컨테이너 배포
+      # 6. GCP 서버에 SSH 접속 후 배포 (SCP 대신 SSH 내에서 docker-compose.yml 생성 및 실행)
       - name: Deploy to GCP VM via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -66,11 +55,26 @@ jobs:
             cd ~/app
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             
+            # docker-compose.yml 파일 직접 생성
+            cat << 'EOF' > docker-compose.yml
+            version: '3.8'
+
+            services:
+              app:
+                image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest
+                container_name: bus-tracker-app
+                restart: always
+                ports:
+                  - "8080:8080"
+                environment:
+                  - SPRING_PROFILES_ACTIVE=prod
+            EOF
+            
             # 1. 최신 이미지 다운로드
-            docker compose pull
+            sudo docker compose pull || docker compose pull
             
             # 2. 컨테이너 재실행
-            docker compose up -d --force-recreate
+            sudo docker compose up -d --force-recreate || docker compose up -d --force-recreate
             
-            # 3. 디스크 공간 절약을 위해 오래된 미사용 이미지 정리 (30GB 디스크 보호)
-            docker image prune -f
+            # 3. 미사용 이미지 정리
+            sudo docker image prune -f || docker image prune -f

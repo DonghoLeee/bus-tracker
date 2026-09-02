@@ -62,35 +62,44 @@ jobs:
             cd ~/app
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
 
-            # docker-compose.yml 작성
-            cat << 'EOF' > docker-compose.yml
-            version: '3.8'
+            # 기존 컨테이너 전부 중지 (구 서비스명 app 포함)
+            sudo docker compose down --remove-orphans 2>/dev/null || true
+            sudo docker stop bus-tracker-app bus-tracker-backend bus-tracker-frontend 2>/dev/null || true
+            sudo docker rm bus-tracker-app bus-tracker-backend bus-tracker-frontend 2>/dev/null || true
 
-            services:
-              backend:
-                image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest
-                container_name: bus-tracker-backend
-                restart: always
-                ports:
-                  - "8080:8080"
-                environment:
-                  - SPRING_PROFILES_ACTIVE=prod
+            # docker-compose.yml 작성 (들여쓰기 없는 heredoc)
+            cat > docker-compose.yml << EOF
+version: '3.8'
 
-              frontend:
-                image: ${DOCKERHUB_USERNAME}/bus-tracker-frontend:latest
-                container_name: bus-tracker-frontend
-                restart: always
-                ports:
-                  - "80:80"
-                depends_on:
-                  - backend
-            EOF
+services:
+  backend:
+    image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest
+    container_name: bus-tracker-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
 
-            # 1. 최신 이미지 다운로드
+  frontend:
+    image: ${DOCKERHUB_USERNAME}/bus-tracker-frontend:latest
+    container_name: bus-tracker-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+EOF
+
+            # 최신 이미지 다운로드
             sudo docker compose pull || docker compose pull
 
-            # 2. 컨테이너 재실행
-            sudo docker compose up -d --force-recreate || docker compose up -d --force-recreate
+            # 컨테이너 실행
+            sudo docker compose up -d || docker compose up -d
 
-            # 3. 미사용 이미지 정리
+            # 미사용 이미지 정리
             sudo docker image prune -f || docker image prune -f
+
+            # 상태 확인
+            echo "=== 실행 중인 컨테이너 ==="
+            sudo docker compose ps

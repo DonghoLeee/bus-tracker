@@ -57,39 +57,41 @@ jobs:
           host: ${{ secrets.GCP_HOST }}
           username: ${{ secrets.GCP_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
+          envs: DOCKERHUB_USERNAME
           script: |
-            mkdir -p ~/app
-            cd ~/app
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            mkdir -p ~/app && cd ~/app
 
             # 기존 컨테이너 전부 중지 (구 서비스명 app 포함)
             sudo docker compose down --remove-orphans 2>/dev/null || true
             sudo docker stop bus-tracker-app bus-tracker-backend bus-tracker-frontend 2>/dev/null || true
             sudo docker rm bus-tracker-app bus-tracker-backend bus-tracker-frontend 2>/dev/null || true
 
-            # docker-compose.yml 작성 (들여쓰기 없는 heredoc)
-            cat > docker-compose.yml << EOF
-version: '3.8'
+            # docker-compose.yml 작성 (printf로 들여쓰기 문제 없이)
+            printf '%s\n' \
+              "version: '3.8'" \
+              "" \
+              "services:" \
+              "  backend:" \
+              "    image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest" \
+              "    container_name: bus-tracker-backend" \
+              "    restart: always" \
+              "    ports:" \
+              '      - "8080:8080"' \
+              "    environment:" \
+              "      - SPRING_PROFILES_ACTIVE=prod" \
+              "" \
+              "  frontend:" \
+              "    image: ${DOCKERHUB_USERNAME}/bus-tracker-frontend:latest" \
+              "    container_name: bus-tracker-frontend" \
+              "    restart: always" \
+              "    ports:" \
+              '      - "80:80"' \
+              "    depends_on:" \
+              "      - backend" \
+              > docker-compose.yml
 
-services:
-  backend:
-    image: ${DOCKERHUB_USERNAME}/bus-tracker-backend:latest
-    container_name: bus-tracker-backend
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-
-  frontend:
-    image: ${DOCKERHUB_USERNAME}/bus-tracker-frontend:latest
-    container_name: bus-tracker-frontend
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-EOF
+            cat docker-compose.yml
 
             # 최신 이미지 다운로드
             sudo docker compose pull || docker compose pull

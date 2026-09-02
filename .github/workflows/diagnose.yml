@@ -1,0 +1,27 @@
+name: Diagnose - Check Container Status
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH Diagnose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_HOST }}
+          username: ${{ secrets.GCP_USERNAME }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            echo "=== Docker Compose PS ==="
+            cd ~/app && sudo docker compose ps || docker compose ps
+
+            echo "=== Docker Container Logs (frontend) ==="
+            sudo docker logs bus-tracker-frontend --tail 30 2>&1 || echo "Container not found"
+
+            echo "=== Listening Ports ==="
+            sudo ss -tlnp | grep -E '80|8080' || netstat -tlnp | grep -E '80|8080'
+
+            echo "=== Docker Images ==="
+            sudo docker images | grep bus-tracker

@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia';
+import { defineStore } from 'pinia';
 import { busApi } from '../api/busApi';
 
 export const useBookmarkStore = defineStore('bookmark', {
@@ -18,6 +18,8 @@ export const useBookmarkStore = defineStore('bookmark', {
     selectedStation: null,
     stationBuses: [],
     loadingStationBuses: false,
+    refreshingStationBuses: false,
+    stationBusFetchError: null, // null이면 정상, 문자열이면 오류 메시지
 
     // 토스트 알림
     toastMessage: null,
@@ -138,23 +140,107 @@ export const useBookmarkStore = defineStore('bookmark', {
       }
     },
 
-    async selectStation(station) {
+    async selectStation(station, isSilent = false) {
+      if (!station) return;
+      const isSameStation = this.selectedStation?.stationId === station.stationId;
+
       this.selectedStation = station;
-      this.loadingStationBuses = true;
+      this.stationBusFetchError = null;
+
+      // 같은 정류장이면서 이미 데이터가 있으면 깜빡임 없이 silent/upsert 모드로 갱신
+      const shouldBeSilent = isSilent || (isSameStation && this.stationBuses.length > 0);
+
+      if (!shouldBeSilent) {
+        this.stationBuses = [];
+        this.loadingStationBuses = true;
+      } else {
+        this.refreshingStationBuses = true;
+      }
+
       try {
         const response = await busApi.getStationBuses(station.stationId);
-        this.stationBuses = response.data;
+        const incoming = response.data || [];
+
+        if (!shouldBeSilent || this.stationBuses.length === 0) {
+          this.stationBuses = incoming;
+        } else {
+          this.upsertStationBuses(incoming);
+        }
       } catch (error) {
         console.error('정류장 버스 조회 실패:', error);
-        this.showToast('정류장 버스 정보를 불러올 수 없습니다.', 'error');
+        // 503 Service Unavailable: 서버에서 보낸 error 메시지 사용
+        const serverMsg = error.response?.data?.error;
+        const displayMsg = serverMsg || '도착정보를 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        if (this.stationBuses.length === 0) {
+          this.stationBusFetchError = displayMsg;
+        }
+        if (!shouldBeSilent) {
+          this.showToast(displayMsg, 'error');
+        }
       } finally {
         this.loadingStationBuses = false;
+        this.refreshingStationBuses = false;
       }
+    },
+
+    upsertStationBuses(incomingList) {
+      if (!Array.isArray(incomingList)) return;
+
+      const existingMap = new Map();
+      this.stationBuses.forEach((item, index) => {
+        const key = item.busRouteId || item.busRouteName;
+        if (key) {
+          existingMap.set(key, { item, index });
+        }
+      });
+
+      const incomingKeys = new Set();
+
+      incomingList.forEach((incoming) => {
+        const key = incoming.busRouteId || incoming.busRouteName;
+        if (!key) return;
+        incomingKeys.add(key);
+
+        if (existingMap.has(key)) {
+          // UPDATE: 기존 인스턴스 속성만 in-place 갱신하여 DOM 재생성 및 깜빡임 방지
+          const { item: target } = existingMap.get(key);
+          Object.assign(target, {
+            ...incoming,
+            isBookmarked: this.isRouteBookmarked(this.selectedStation.stationId, incoming.busRouteId),
+          });
+        } else {
+          // INSERT: 새로 진입한 노선 추가
+          this.stationBuses.push({
+            ...incoming,
+            isBookmarked: this.isRouteBookmarked(this.selectedStation.stationId, incoming.busRouteId),
+          });
+        }
+      });
+
+      // 새 목록에서 제외된 노선 안전하게 제거
+      for (let i = this.stationBuses.length - 1; i >= 0; i--) {
+        const key = this.stationBuses[i].busRouteId || this.stationBuses[i].busRouteName;
+        if (key && !incomingKeys.has(key)) {
+          this.stationBuses.splice(i, 1);
+        }
+      }
+
+      // 정렬 유지: 운행 중 우선, 도착 시간 빠른 순
+      this.stationBuses.sort((a, b) => {
+        if (a.isOperating !== b.isOperating) {
+          return a.isOperating ? -1 : 1;
+        }
+        const t1 = a.predictTimeSec1 != null ? a.predictTimeSec1 : 99999;
+        const t2 = b.predictTimeSec1 != null ? b.predictTimeSec1 : 99999;
+        return t1 - t2;
+      });
     },
 
     clearSelectedStation() {
       this.selectedStation = null;
       this.stationBuses = [];
+      this.loadingStationBuses = false;
+      this.refreshingStationBuses = false;
     },
 
     setRefreshInterval(seconds) {
@@ -179,7 +265,8 @@ export const useBookmarkStore = defineStore('bookmark', {
           this.secondsUntilNextRefresh = this.refreshIntervalSec;
           this.refreshArrivalsSilently();
           if (this.selectedStation) {
-            this.selectStation(this.selectedStation);
+            // 팝업 열려 있을 시 깜빡임 없는 silent upsert 갱신
+            this.selectStation(this.selectedStation, true);
           }
         }
       }, 1000);

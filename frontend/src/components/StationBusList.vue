@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed } from 'vue';
 import { useBookmarkStore } from '../stores/bookmarkStore';
 import { 
@@ -9,8 +9,20 @@ import {
 const store = useBookmarkStore();
 
 const station = computed(() => store.selectedStation);
-const buses = computed(() => store.stationBuses);
-const loading = computed(() => store.loadingStationBuses);
+const buses = computed(() => {
+  const list = store.stationBuses || [];
+  const seen = new Set();
+  return list.filter((bus) => {
+    const key = bus.busRouteId || bus.busRouteName;
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+});
+const loading  = computed(() => store.loadingStationBuses);
+const refreshing = computed(() => store.refreshingStationBuses);
+const fetchError = computed(() => store.stationBusFetchError);
 
 const getBusBadgeStyle = (type) => {
   switch (type) {
@@ -56,6 +68,14 @@ const formatSeconds = (sec) => {
   const s = sec % 60;
   return s > 0 ? `${m}분 ${s}초` : `${m}분`;
 };
+
+const getDirectionTextClass = (direction) => {
+  if (!direction) return 'text-xs';
+  const len = direction.length;
+  if (len >= 17) return 'text-[10px] sm:text-[10.5px] tracking-tight leading-tight';
+  if (len >= 12) return 'text-[11px] sm:text-[11.5px] tracking-tight leading-tight';
+  return 'text-xs';
+};
 </script>
 
 <template>
@@ -72,6 +92,10 @@ const formatSeconds = (sec) => {
             </span>
             <span v-if="station.arsId" class="text-xs text-slate-400 font-mono">
               ARS: {{ station.arsId }}
+            </span>
+            <span v-if="refreshing" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-500/25 text-indigo-200 text-[11px] font-medium animate-pulse">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              실시간 갱신 중
             </span>
           </div>
           <h2 class="text-2xl font-bold text-white flex items-center gap-2">
@@ -105,14 +129,29 @@ const formatSeconds = (sec) => {
           <span class="text-xs text-slate-400">원하는 버스를 선택해 도착 알림에 등록하세요</span>
         </div>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="py-16 text-center text-slate-400">
+        <!-- Loading State (첫 로드 시에만 스피너 표시) -->
+        <div v-if="loading && buses.length === 0" class="py-16 text-center text-slate-400">
           <div class="inline-block w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
           <p class="text-sm">실시간 버스 도착 정보를 불러오는 중입니다...</p>
         </div>
 
+        <!-- Error State -->
+        <div v-else-if="fetchError && buses.length === 0" class="py-14 flex flex-col items-center text-center gap-3">
+          <div class="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center mb-1">
+            <ShieldAlert class="w-7 h-7 text-rose-500" />
+          </div>
+          <p class="text-sm font-bold text-slate-700">도착정보를 가져오지 못했습니다</p>
+          <p class="text-xs text-slate-400 max-w-xs">{{ fetchError }}</p>
+          <button
+            @click="store.selectStation(station)"
+            class="mt-2 px-4 py-2 text-xs font-semibold bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+
         <!-- Empty State -->
-        <div v-else-if="buses.length === 0" class="py-16 text-center text-slate-400">
+        <div v-else-if="!loading && buses.length === 0" class="py-16 text-center text-slate-400">
           <Bus class="w-10 h-10 mx-auto mb-2 text-slate-300" />
           <p class="text-sm font-medium">정차하는 버스 정보가 없습니다.</p>
         </div>
@@ -122,73 +161,91 @@ const formatSeconds = (sec) => {
           <div
             v-for="bus in buses"
             :key="bus.busRouteId"
-            class="p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            class="p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
             :class="bus.isBookmarked 
               ? 'bg-indigo-50/60 border-indigo-200 shadow-sm' 
               : 'bg-white border-slate-200/80 hover:border-slate-300 hover:bg-slate-50/50'"
           >
             
             <!-- Left: Bus Number, Type, Direction -->
-            <div class="flex items-start sm:items-center gap-3">
-              <div class="px-3 py-1.5 rounded-xl font-black text-lg sm:text-xl tracking-tight shadow-sm flex items-center justify-center min-w-[76px]"
+            <div class="flex items-center gap-3 flex-1 min-w-0 mr-1 sm:mr-3">
+              <div class="px-3 py-1.5 rounded-xl font-black text-lg sm:text-xl tracking-tight shadow-sm flex items-center justify-center min-w-[76px] shrink-0"
                    :class="getBusBadgeStyle(bus.busType)">
                 {{ bus.busRouteName }}
               </div>
 
-              <div>
+              <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <span class="text-xs px-2 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-600">
+                  <span class="text-xs px-2 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-600 shrink-0">
                     {{ bus.busTypeLabel }}
                   </span>
-                  <span v-if="bus.isLowPlate1" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium">
+                  <span v-if="bus.isLowPlate1" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-medium shrink-0">
                     저상
                   </span>
-                  <span v-if="bus.isLastBus" class="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
+                  <span v-if="bus.isLastBus" class="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold shrink-0">
                     막차
                   </span>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">
+                <p 
+                  class="text-slate-500 mt-1 truncate transition-all"
+                  :class="getDirectionTextClass(bus.direction)"
+                  :title="bus.direction"
+                >
                   {{ bus.direction }}
                 </p>
               </div>
             </div>
 
-            <!-- Middle: Live Arrival Countdown Info -->
-            <div class="flex flex-col sm:items-end gap-1">
-              <!-- 1st Arrival -->
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-bold" :class="bus.predictTimeSec1 <= 180 ? 'text-rose-600 animate-pulse' : 'text-slate-800'">
-                  {{ bus.predictTimeSec1 < 50 ? '곧 도착' : formatSeconds(bus.predictTimeSec1) + ' 후' }}
-                </span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
-                  {{ bus.locationNo1 }}번째 전
-                </span>
-                <span v-if="bus.congestion1" class="text-xs px-2 py-0.5 rounded-full border font-medium"
-                      :class="getCongestionBadge(bus.congestion1)">
-                  {{ bus.congestion1 }}
-                </span>
+            <!-- Right: Status Info & Bookmark Button Grouped Together with Consistent Spacing -->
+            <div class="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+              
+              <!-- Arrival Countdown or Status Badge -->
+              <div class="flex flex-col items-start sm:items-end justify-center min-w-[105px] sm:min-w-[115px] text-left sm:text-right shrink-0">
+                <!-- 1st Arrival (When active arrival prediction exists) -->
+                <template v-if="bus.isOperating && bus.predictTimeSec1 != null && bus.predictTimeSec1 > 0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-sm font-bold" :class="bus.predictTimeSec1 <= 180 ? 'text-rose-600 animate-pulse' : 'text-slate-800'">
+                      {{ bus.predictTimeSec1 < 50 ? '곧 도착' : formatSeconds(bus.predictTimeSec1) + ' 후' }}
+                    </span>
+                    <span v-if="bus.locationNo1 != null && bus.locationNo1 > 0" class="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium">
+                      {{ bus.locationNo1 }}번째 전
+                    </span>
+                    <span v-if="bus.congestion1" class="text-[10px] px-1.5 py-0.5 rounded-md border font-medium"
+                          :class="getCongestionBadge(bus.congestion1)">
+                      {{ bus.congestion1 }}
+                    </span>
+                  </div>
+
+                  <!-- 2nd Arrival Info (Small) -->
+                  <div v-if="bus.predictTimeSec2 != null && bus.predictTimeSec2 > 0" class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                    <span>다음: {{ formatSeconds(bus.predictTimeSec2) }} 후</span>
+                    <span v-if="bus.locationNo2 != null && bus.locationNo2 > 0">({{ bus.locationNo2 }}번째 전)</span>
+                  </div>
+                </template>
+
+                <!-- When no arrival prediction / not operating -->
+                <div v-else class="flex items-center">
+                  <span class="text-xs px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-500 border border-slate-200/60 whitespace-nowrap">
+                    {{ bus.statusMessage && bus.statusMessage !== '0' && bus.statusMessage !== 'null' ? bus.statusMessage : '도착 정보 없음' }}
+                  </span>
+                </div>
               </div>
 
-              <!-- 2nd Arrival Info (Small) -->
-              <div v-if="bus.predictTimeSec2" class="text-[11px] text-slate-400 flex items-center gap-1">
-                <span>다음: {{ formatSeconds(bus.predictTimeSec2) }} 후</span>
-                <span>({{ bus.locationNo2 }}번째 전)</span>
+              <!-- Bookmark Toggle Button (Fixed Width so text change doesn't cause layout shift) -->
+              <div class="shrink-0">
+                <button
+                  @click="handleToggle(bus)"
+                  class="w-[124px] sm:w-[136px] py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm select-none"
+                  :class="bus.isBookmarked
+                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
+                    : 'bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200'"
+                >
+                  <BookmarkCheck v-if="bus.isBookmarked" class="w-4 h-4 shrink-0" />
+                  <BookmarkPlus v-else class="w-4 h-4 shrink-0" />
+                  <span>{{ bus.isBookmarked ? '등록됨' : '도착 알림 등록' }}</span>
+                </button>
               </div>
-            </div>
 
-            <!-- Right: Bookmark Toggle Button -->
-            <div class="flex items-center justify-end sm:pl-2">
-              <button
-                @click="handleToggle(bus)"
-                class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all shadow-sm"
-                :class="bus.isBookmarked
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200'
-                  : 'bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200'"
-              >
-                <BookmarkCheck v-if="bus.isBookmarked" class="w-4 h-4" />
-                <BookmarkPlus v-else class="w-4 h-4" />
-                <span>{{ bus.isBookmarked ? '등록됨' : '도착 알림 등록' }}</span>
-              </button>
             </div>
 
           </div>

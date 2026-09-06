@@ -8,10 +8,40 @@ const api = axios.create({
   },
 });
 
+// Request Interceptor: Attach Auth Token & Device ID
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  const deviceId = localStorage.getItem('guest_device_id');
+  if (deviceId) {
+    config.headers['X-Device-Id'] = deviceId;
+  }
+  return config;
+});
+
 export const busApi = {
-  // 정류장 검색
-  searchStations(keyword = '') {
-    return api.get('/stations', { params: { keyword } });
+  // 인증 관련 API
+  loginGuest(deviceId) {
+    return api.post('/auth/guest', { deviceId });
+  },
+
+  loginGoogle(credential, deviceId) {
+    return api.post('/auth/google', { credential, deviceId });
+  },
+
+  getMe() {
+    return api.get('/auth/me');
+  },
+
+  mergeBookmarks(guestDeviceId) {
+    return api.post('/auth/merge', { guestDeviceId });
+  },
+
+  // 정류장 검색 (페이지네이션)
+  searchStations(keyword = '', page = 0, size = 10) {
+    return api.get('/stations', { params: { keyword, page, size } });
   },
 
   // 특정 정류장 정보 단건 조회

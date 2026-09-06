@@ -1,16 +1,15 @@
-﻿server:
+server:
   port: 8080
 
 spring:
   application:
     name: bus-tracker
   datasource:
-    url: jdbc:h2:mem:busdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:file:./data/busdb;MODE=MySQL;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password:
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: false
@@ -20,7 +19,10 @@ spring:
       path: /h2-console
 
 bus:
-  provider: mock
+  provider: seoul
+  seoul-api:
+    service-key: "BE65q0gxU+Oie7x3ozczoFLUTb2CZtCpt7C1Lur7riU9hw+qSgvVTNU0R/dunpGqojtPX6T8faxJELojNJq4vA=="
+    endpoint: "http://ws.bus.go.kr/api/rest/arrive"
   public-api:
-    service-key: ""
-    endpoint: "http://apis.data.go.kr/1613000/ArvlInfoInqireService"
+    service-key: "BE65q0gxU+Oie7x3ozczoFLUTb2CZtCpt7C1Lur7riU9hw+qSgvVTNU0R/dunpGqojtPX6T8faxJELojNJq4vA=="
+    endpoint: "https://apis.data.go.kr/1613000/ArvlInfoInqireService"

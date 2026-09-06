@@ -5,13 +5,18 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bookmarks", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"stationId", "busRouteId"})
+    @UniqueConstraint(columnNames = {"userId", "stationId", "busRouteId"})
+}, indexes = {
+    @Index(name = "idx_bookmark_user", columnList = "userId")
 })
 public class Bookmark {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private Long userId;
 
     @Column(nullable = false)
     private String stationId;
@@ -40,6 +45,8 @@ public class Bookmark {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
     public String getStationId() { return stationId; }
     public void setStationId(String stationId) { this.stationId = stationId; }
     public String getStationName() { return stationName; }
@@ -63,6 +70,7 @@ public class Bookmark {
     public static class Builder {
         private final Bookmark b = new Bookmark();
         public Builder id(Long v) { b.id = v; return this; }
+        public Builder userId(Long v) { b.userId = v; return this; }
         public Builder stationId(String v) { b.stationId = v; return this; }
         public Builder stationName(String v) { b.stationName = v; return this; }
         public Builder arsId(String v) { b.arsId = v; return this; }

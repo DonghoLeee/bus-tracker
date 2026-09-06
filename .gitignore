@@ -10,6 +10,9 @@ target/
 *.zip
 gradle-8.10.2/
 gradle-dist/
+data/
+*.mv.db
+backend/data/
 
 # Node / Frontend
 node_modules/

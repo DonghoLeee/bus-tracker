@@ -36,6 +36,60 @@ public class MockBusDataProvider implements BusDataProvider {
         addStation("ST_1011", "신촌오거리.현대백화점", "13022", "서울특별시", "이대역 방면", 37.5559, 126.9368);
         addStation("ST_1012", "인천공항T1 (3층)", "35611", "인천광역시", "서울도심 방면", 37.4492, 126.4503);
 
+        // 사용자가 요청한 잠실래미안아이파크.잠실파크리오 및 잠실/송파 일대 정류소
+        addStation("ST_24501", "잠실래미안아이파크.잠실파크리오", "24501", "서울특별시 송파구", "잠실래미안아이파크.잠실파크리오 방면", 37.5186, 127.1065);
+        addStation("ST_24502", "잠실래미안아이파크.잠실파크리오", "24502", "서울특별시 송파구", "잠실역.잠실대교남단 방면", 37.5182, 127.1060);
+        addStation("ST_24001", "잠실역.롯데월드몰", "24001", "서울특별시 송파구", "송파구청 방면", 37.5135, 127.1025);
+        addStation("ST_24002", "잠실나루역", "24002", "서울특별시 송파구", "잠실중학교 방면", 37.5218, 127.1038);
+        addStation("ST_24140", "잠실새내역.잠실2동주민센터", "24140", "서울특별시 송파구", "종합운동장 방면", 37.5117, 127.0862);
+        addStation("ST_24141", "종합운동장역", "24141", "서울특별시 송파구", "삼성역 방면", 37.5108, 127.0734);
+        addStation("ST_24142", "송파구청.방이맛골", "24142", "서울특별시 송파구", "올림픽공원 방면", 37.5147, 127.1060);
+        addStation("ST_24143", "몽촌토성역.한성백제역", "24143", "서울특별시 송파구", "올림픽공원평화의문 방면", 37.5168, 127.1130);
+        addStation("ST_24144", "잠실파크리오아파트앞", "24144", "서울특별시 송파구", "올림픽대교남단 방면", 37.5240, 127.1095);
+        addStation("ST_24145", "잠실진주아파트(잠실래미안아이파크)", "24145", "서울특별시 송파구", "올림픽회관 방면", 37.5186, 127.1065);
+
+        // 서울/수도권 핵심 환승 정류소
+        addStation("ST_02005", "서울역버스환승센터 (5번승강장)", "02005", "서울특별시 중구", "시청역 방면", 37.5558, 126.9723);
+        addStation("ST_02006", "서울역버스환승센터 (6번승강장)", "02006", "서울특별시 중구", "갈월동 방면", 37.5555, 126.9721);
+        addStation("ST_23101", "고속터미널 (중앙)", "23101", "서울특별시 서초구", "반포대교 방면", 37.5049, 127.0048);
+        addStation("ST_23102", "신논현역.구교보타워사거리", "23102", "서울특별시 서초구", "강남역 방면", 37.5045, 127.0253);
+        addStation("ST_05001", "건대입구역사거리.건대병원", "05001", "서울특별시 광진구", "어린이대공원 방면", 37.5404, 127.0700);
+        addStation("ST_06001", "청량리역환승센터 (1번홈)", "06001", "서울특별시 동대문구", "제기동 방면", 37.5810, 127.0460);
+        addStation("ST_19001", "영등포역 (중앙)", "19001", "서울특별시 영등포구", "신길역 방면", 37.5155, 126.9075);
+        addStation("ST_03001", "용산역.아이파크몰", "03001", "서울특별시 용산구", "신용산역 방면", 37.5298, 126.9648);
+        addStation("ST_17001", "구로디지털단지역 (중앙)", "17001", "서울특별시 구로구", "신대방역 방면", 37.4850, 126.9015);
+        addStation("ST_11001", "노원역9번출구", "11001", "서울특별시 노원구", "상계주공 방면", 37.6550, 127.0610);
+        addStation("ST_07498", "정자역", "07498", "경기도 성남시", "미금역 방면", 37.3665, 127.1085);
+        addStation("ST_07497", "서현역.AK플라자", "07497", "경기도 성남시", "이매역 방면", 37.3850, 127.1230);
+
+        // ST_24501 잠실래미안아이파크.잠실파크리오 경유 노선
+        setRoutes("ST_24501", List.of(
+                new BusRouteTemplate("RT_341", "341", BusType.MAIN, "하남공영차고지 ↔ 신논현역", 8, 40, true),
+                new BusRouteTemplate("RT_3216", "3216", BusType.BRANCH, "마천동차고지 ↔ 청량리역", 10, 150, true),
+                new BusRouteTemplate("RT_3313", "3313", BusType.BRANCH, "거여동 ↔ 잠실역", 11, 230, true),
+                new BusRouteTemplate("RT_3315", "3315", BusType.BRANCH, "장지공영차고지 ↔ 수서역", 9, 310, true),
+                new BusRouteTemplate("RT_3411", "3411", BusType.BRANCH, "상일동차고지 ↔ 삼성역", 10, 420, true),
+                new BusRouteTemplate("RT_3413", "3413", BusType.BRANCH, "상일동차고지 ↔ 수서역", 12, 180, true),
+                new BusRouteTemplate("RT_3414", "3414", BusType.BRANCH, "송파공영차고지 ↔ 삼성역", 8, 260, true),
+                new BusRouteTemplate("RT_4318", "4318", BusType.BRANCH, "풍납동차고지 ↔ 사당역", 7, 70, true),
+                new BusRouteTemplate("RT_16", "16", BusType.GENERAL, "하남 ↔ 강남역", 15, 520, false),
+                new BusRouteTemplate("RT_30_1", "30-1", BusType.GENERAL, "하남 ↔ 잠실역", 10, 380, false)
+        ));
+
+        // ST_24502 잠실래미안아이파크.잠실파크리오 (반대 방향)
+        setRoutes("ST_24502", List.of(
+                new BusRouteTemplate("RT_341", "341", BusType.MAIN, "신논현역 ↔ 하남공영차고지", 8, 90, true),
+                new BusRouteTemplate("RT_3216", "3216", BusType.BRANCH, "청량리역 ↔ 마천동차고지", 10, 210, true),
+                new BusRouteTemplate("RT_3313", "3313", BusType.BRANCH, "잠실역 ↔ 거여동", 11, 180, true),
+                new BusRouteTemplate("RT_3315", "3315", BusType.BRANCH, "수서역 ↔ 장지공영차고지", 9, 340, true),
+                new BusRouteTemplate("RT_3411", "3411", BusType.BRANCH, "삼성역 ↔ 상일동차고지", 10, 270, true),
+                new BusRouteTemplate("RT_3413", "3413", BusType.BRANCH, "수서역 ↔ 상일동차고지", 12, 390, true),
+                new BusRouteTemplate("RT_3414", "3414", BusType.BRANCH, "삼성역 ↔ 송파공영차고지", 8, 120, true),
+                new BusRouteTemplate("RT_4318", "4318", BusType.BRANCH, "사당역 ↔ 풍납동차고지", 7, 160, true),
+                new BusRouteTemplate("RT_16", "16", BusType.GENERAL, "강남역 ↔ 하남", 15, 480, false),
+                new BusRouteTemplate("RT_30_1", "30-1", BusType.GENERAL, "잠실역 ↔ 하남", 10, 250, false)
+        ));
+
         setRoutes("ST_1001", List.of(
                 new BusRouteTemplate("RT_140", "140", BusType.MAIN, "도봉산역 ↔ 내곡동", 8, 30, true),
                 new BusRouteTemplate("RT_470", "470", BusType.MAIN, "상암차고지 ↔ 안골마을", 10, 120, true),
@@ -147,8 +201,46 @@ public class MockBusDataProvider implements BusDataProvider {
     @Override
     public List<Station> searchStations(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) return mockStations;
-        String k = keyword.trim().toLowerCase();
-        return mockStations.stream().filter(s -> s.getStationName().toLowerCase().contains(k) || (s.getArsId() != null && s.getArsId().contains(k)) || (s.getCityName() != null && s.getCityName().toLowerCase().contains(k))).collect(Collectors.toList());
+        String raw = keyword.trim().toLowerCase();
+        String compact = raw.replaceAll("\\s+", ""); // 공백 제거
+
+        return mockStations.stream()
+                .filter(s -> {
+                    String name = s.getStationName().toLowerCase();
+                    String compactName = name.replaceAll("\\s+", "");
+                    String ars = s.getArsId() != null ? s.getArsId() : "";
+                    String city = s.getCityName() != null ? s.getCityName().toLowerCase() : "";
+
+                    return ars.equalsIgnoreCase(raw)
+                            || ars.contains(raw)
+                            || compactName.contains(compact)
+                            || name.contains(raw)
+                            || city.contains(raw);
+                })
+                .sorted((a, b) -> {
+                    // 1. arsId가 검색어와 정확히 일치하는 경우 최우선
+                    boolean aArsExact = a.getArsId() != null && a.getArsId().equalsIgnoreCase(raw);
+                    boolean bArsExact = b.getArsId() != null && b.getArsId().equalsIgnoreCase(raw);
+                    if (aArsExact != bArsExact) return aArsExact ? -1 : 1;
+
+                    // 2. arsId가 검색어로 시작하는 경우
+                    boolean aArsStart = a.getArsId() != null && a.getArsId().startsWith(raw);
+                    boolean bArsStart = b.getArsId() != null && b.getArsId().startsWith(raw);
+                    if (aArsStart != bArsStart) return aArsStart ? -1 : 1;
+
+                    // 3. 정류소명이 검색어와 정확히 일치하는 경우
+                    boolean aNameExact = a.getStationName().equalsIgnoreCase(raw);
+                    boolean bNameExact = b.getStationName().equalsIgnoreCase(raw);
+                    if (aNameExact != bNameExact) return aNameExact ? -1 : 1;
+
+                    // 4. 정류소명이 검색어로 시작하는 경우
+                    boolean aNameStart = a.getStationName().toLowerCase().startsWith(raw);
+                    boolean bNameStart = b.getStationName().toLowerCase().startsWith(raw);
+                    if (aNameStart != bNameStart) return aNameStart ? -1 : 1;
+
+                    return a.getStationName().compareTo(b.getStationName());
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

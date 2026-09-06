@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed } from 'vue';
 import { useBookmarkStore } from '../stores/bookmarkStore';
 import { 
@@ -67,23 +67,23 @@ const handleDelete = (bookmark) => {
 <template>
   <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <!-- Section Title -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
-      <div>
-        <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-          <span>내 등록 버스 실시간 도착 현황</span>
-          <span class="text-sm px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+    <!-- Section Title (Simple & Trendy 1-Line) -->
+    <div class="flex items-center justify-between gap-3 mb-5">
+      <div class="flex items-center gap-2.5">
+        <h2 class="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
+          <span>내 등록 버스</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-extrabold font-mono">
             {{ bookmarks.length }}
           </span>
         </h2>
-        <p class="text-xs sm:text-sm text-slate-500 mt-1">
-          등록해둔 버스의 도착 예정 시간과 남은 정류장이 실시간으로 자동 갱신됩니다.
-        </p>
+        <span class="hidden sm:inline-block text-xs text-slate-400 font-medium border-l border-slate-200 pl-2.5">
+          서울 실시간 도착 현황
+        </span>
       </div>
 
-      <div v-if="store.lastUpdated" class="text-xs text-slate-400 flex items-center gap-1">
-        <Clock class="w-3.5 h-3.5" />
-        <span>마지막 갱신: {{ new Date(store.lastUpdated).toLocaleTimeString() }}</span>
+      <div v-if="store.lastUpdated" class="text-xs text-slate-400 flex items-center gap-1 font-medium shrink-0">
+        <Clock class="w-3.5 h-3.5 text-slate-400" />
+        <span>마지막 갱신: {{ new Date(store.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }}</span>
       </div>
     </div>
 
@@ -171,7 +171,7 @@ const handleDelete = (bookmark) => {
           </div>
 
           <!-- Arrival Information Display -->
-          <div v-if="item.arrivalInfo && item.arrivalInfo.isOperating" class="space-y-2.5">
+          <div v-if="item.arrivalInfo && item.arrivalInfo.isOperating && item.arrivalInfo.predictTimeSec1 != null && item.arrivalInfo.predictTimeSec1 > 0" class="space-y-2.5">
             
             <!-- 1st Bus Arrival (Main) -->
             <div
@@ -196,7 +196,10 @@ const handleDelete = (bookmark) => {
                      :class="isImminent(item.arrivalInfo) ? 'text-rose-600' : 'text-indigo-950'">
                   {{ item.arrivalInfo.predictTimeSec1 < 50 ? '곧 도착' : formatSeconds(item.arrivalInfo.predictTimeSec1) }}
                 </div>
-                <div class="text-xs font-bold text-slate-600 bg-white/80 px-2 py-1 rounded-lg border border-slate-200/60 shadow-2xs">
+                <div
+                  v-if="item.arrivalInfo.locationNo1 != null && item.arrivalInfo.locationNo1 > 0"
+                  class="text-xs font-bold text-slate-600 bg-white/80 px-2 py-1 rounded-lg border border-slate-200/60 shadow-2xs"
+                >
                   {{ item.arrivalInfo.locationNo1 }}번째 전
                 </div>
               </div>
@@ -204,13 +207,13 @@ const handleDelete = (bookmark) => {
 
             <!-- 2nd Bus Arrival (Sub) -->
             <div
-              v-if="item.arrivalInfo.predictTimeSec2"
+              v-if="item.arrivalInfo.predictTimeSec2 != null && item.arrivalInfo.predictTimeSec2 > 0"
               class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 text-xs text-slate-600 border border-slate-100"
             >
               <span class="text-slate-400">두 번째 버스</span>
               <div class="flex items-center gap-2 font-medium">
                 <span class="font-bold text-slate-700">{{ formatSeconds(item.arrivalInfo.predictTimeSec2) }}</span>
-                <span class="text-slate-400">({{ item.arrivalInfo.locationNo2 }}번째 전)</span>
+                <span v-if="item.arrivalInfo.locationNo2 != null && item.arrivalInfo.locationNo2 > 0" class="text-slate-400">({{ item.arrivalInfo.locationNo2 }}번째 전)</span>
                 <span
                   v-if="item.arrivalInfo.congestion2"
                   class="text-[10px] px-1.5 py-0.2 rounded border"
@@ -226,7 +229,7 @@ const handleDelete = (bookmark) => {
           <!-- Non-operating or No Data -->
           <div v-else class="py-6 text-center bg-slate-50 rounded-2xl border border-slate-100 text-slate-400">
             <AlertCircle class="w-6 h-6 mx-auto mb-1 text-slate-300" />
-            <p class="text-xs font-medium">{{ item.arrivalInfo?.statusMessage || '운행 정보 없음' }}</p>
+            <p class="text-xs font-medium">{{ item.arrivalInfo?.statusMessage || '도착 정보 없음' }}</p>
           </div>
         </div>
 

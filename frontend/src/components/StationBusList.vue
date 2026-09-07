@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useBookmarkStore } from '../stores/bookmarkStore';
+import BusLoading from './BusLoading.vue';
 import { 
   Bus, MapPin, X, BookmarkCheck, BookmarkPlus, 
   Clock, ShieldAlert, Users, Sparkles, Navigation 
@@ -129,11 +130,12 @@ const getDirectionTextClass = (direction) => {
           <span class="text-xs text-slate-400">원하는 버스를 선택해 도착 알림에 등록하세요</span>
         </div>
 
-        <!-- Loading State (첫 로드 시에만 스피너 표시) -->
-        <div v-if="loading && buses.length === 0" class="py-16 text-center text-slate-400">
-          <div class="inline-block w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p class="text-sm">실시간 버스 도착 정보를 불러오는 중입니다...</p>
-        </div>
+        <!-- Loading State with Bus Driving & Smoke Animation -->
+        <BusLoading
+          v-if="loading && buses.length === 0"
+          message="정차 버스 도착 정보를 불러오는 중입니다"
+          subMessage="서울시 실시간 버스 도착 API와 통신하고 있습니다"
+        />
 
         <!-- Error State -->
         <div v-else-if="fetchError && buses.length === 0" class="py-14 flex flex-col items-center text-center gap-3">

@@ -3,6 +3,7 @@ import { ref, watch, onUnmounted } from 'vue';
 import { useBookmarkStore } from '../stores/bookmarkStore';
 import { busApi } from '../api/busApi';
 import StationMapModal from './StationMapModal.vue';
+import BusLoading from './BusLoading.vue';
 import { Search, MapPin, Map, Navigation, ChevronRight, X, Sparkles, AlertTriangle, Loader2 } from 'lucide-vue-next';
 
 const store = useBookmarkStore();
@@ -267,16 +268,13 @@ watch(showResults, (val) => {
         </div>
       </div>
 
-      <!-- Loading skeleton -->
-      <div v-if="isSearching" class="divide-y divide-slate-100 max-h-96 overflow-hidden">
-        <div v-for="i in 5" :key="i" class="px-5 py-3.5 flex items-center gap-3 animate-pulse">
-          <div class="w-7 h-7 rounded-lg bg-slate-200 flex-shrink-0"></div>
-          <div class="flex-1">
-            <div class="h-4 bg-slate-200 rounded w-48 mb-1.5"></div>
-            <div class="h-3 bg-slate-100 rounded w-32"></div>
-          </div>
-        </div>
-      </div>
+      <!-- Loading state with Bus Driving & Smoke Animation -->
+      <BusLoading
+        v-if="isSearching"
+        size="sm"
+        message="정류장을 검색하고 있습니다"
+        subMessage="정류소 및 경유 노선을 조회 중입니다"
+      />
 
       <!-- Results list (scrollable) -->
       <div v-else-if="searchResults.length > 0" class="max-h-[420px] overflow-y-auto divide-y divide-slate-100">

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useBookmarkStore } from '../stores/bookmarkStore';
+import BusLoading from './BusLoading.vue';
 import { 
   Bus, Trash2, MapPin, Clock, Users, AlertCircle, 
   ChevronRight, Navigation, Sparkles, PlusCircle 
@@ -87,11 +88,12 @@ const handleDelete = (bookmark) => {
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading && bookmarks.length === 0" class="py-20 text-center">
-      <div class="inline-block w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p class="text-slate-500 font-medium text-sm">등록된 버스 도착 정보를 가져오는 중...</p>
-    </div>
+    <!-- Loading State with Bus Driving & Smoke Animation -->
+    <BusLoading
+      v-if="loading && bookmarks.length === 0"
+      message="등록된 버스 도착 정보를 불러오는 중입니다"
+      subMessage="실시간 운행 현황과 버스 위치를 조회하고 있습니다"
+    />
 
     <!-- Empty State -->
     <div

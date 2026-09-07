@@ -282,46 +282,52 @@ watch(showResults, (val) => {
           v-for="station in searchResults"
           :key="station.stationId"
           @click="handleSelectStation(station)"
-          class="w-full text-left px-5 py-3.5 hover:bg-indigo-50/70 transition-colors flex items-center justify-between group cursor-pointer"
+          class="w-full text-left px-3.5 sm:px-5 py-3 sm:py-3.5 hover:bg-indigo-50/70 transition-colors flex items-center justify-between group cursor-pointer"
         >
-          <div class="flex items-start gap-3 flex-1 min-w-0 mr-3">
-            <div class="mt-1 w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-              <MapPin class="w-4 h-4" />
+          <!-- Left: Station Info -->
+          <div class="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0 mr-2 sm:mr-3">
+            <div class="mt-0.5 w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+              <MapPin class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
+
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-slate-900 text-base group-hover:text-indigo-700 truncate">{{ station.stationName }}</span>
-                <span v-if="station.arsId" class="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-mono shrink-0">
+              <!-- Station Name & ARS ID -->
+              <div class="flex flex-wrap sm:flex-nowrap items-baseline gap-1.5 sm:gap-2">
+                <span class="font-bold text-slate-900 text-sm sm:text-base group-hover:text-indigo-700 break-keep leading-tight">
+                  {{ station.stationName }}
+                </span>
+                <span v-if="station.arsId" class="text-[10.5px] sm:text-xs px-1.5 py-0.2 rounded bg-slate-100 text-slate-500 font-mono shrink-0">
                   {{ station.arsId }}
                 </span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5 truncate">
-                {{ station.cityName }}
+
+              <!-- Direction & City Name (Full display without severe truncation) -->
+              <p class="text-xs text-slate-500 mt-1 line-clamp-1 break-keep leading-normal">
+                <span>{{ station.cityName }}</span>
                 <template v-if="station.nextStationName">
-                  · <span class="text-slate-600">{{ formatDirection(station.nextStationName) }}</span>
+                  <span class="text-slate-400 mx-1">·</span>
+                  <span class="text-slate-600 font-medium">{{ formatDirection(station.nextStationName) }}</span>
                 </template>
               </p>
             </div>
           </div>
 
           <!-- Right Action Area (지도 보기 + 버스 보기) -->
-          <div class="flex items-center gap-2 shrink-0">
-            <!-- 지도 모달 열기 버튼 (Trendy Modern Pill) -->
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <!-- 지도 모달 열기 버튼 (모바일에서는 컴팩트 버튼) -->
             <button
               type="button"
               @click.stop="handleOpenMap(station)"
-              class="group/map inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full text-xs font-bold text-indigo-600 bg-gradient-to-r from-indigo-50 via-sky-50/50 to-indigo-50/80 hover:from-indigo-600 hover:via-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-100 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-indigo-500/25 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 select-none"
+              class="group/map inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:pl-1.5 sm:pr-2.5 py-1 rounded-full text-[11px] sm:text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-100/90 hover:border-transparent shadow-2xs hover:shadow-sm active:scale-95 transition-all select-none shrink-0"
               title="카카오 지도에서 정류장 위치 확인"
             >
-              <span class="w-5 h-5 rounded-full bg-white text-indigo-600 group-hover/map:bg-white/20 group-hover/map:text-white flex items-center justify-center shadow-2xs transition-all duration-200">
-                <MapPin class="w-3 h-3 text-indigo-600 group-hover/map:text-white transition-transform duration-200 group-hover/map:scale-110" />
-              </span>
+              <MapPin class="w-3 h-3 text-indigo-600 group-hover/map:text-white shrink-0" />
               <span class="tracking-tight">지도</span>
             </button>
 
-            <!-- 버스 보기 -->
-            <div class="flex items-center text-slate-400 group-hover:text-indigo-600 text-xs font-semibold gap-0.5 select-none transition-colors pl-1">
-              <span>버스 보기</span>
+            <!-- 버스 보기 (모바일에서는 화살표 아이콘만으로 공간 절약) -->
+            <div class="flex items-center text-slate-400 group-hover:text-indigo-600 text-xs font-semibold gap-0.5 select-none transition-colors pl-0.5 sm:pl-1 shrink-0">
+              <span class="hidden sm:inline">버스 보기</span>
               <ChevronRight class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </div>
           </div>

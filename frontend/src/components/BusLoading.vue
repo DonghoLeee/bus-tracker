@@ -22,14 +22,6 @@ defineProps({
     
     <!-- Bus Animation Stage -->
     <div class="relative flex items-center justify-center mb-5">
-      
-      <!-- Exhaust Smoke Puffs (연기를 뿜고 가는 효과) -->
-      <div class="absolute -left-7 sm:-left-9 bottom-3 flex items-center pointer-events-none">
-        <span class="smoke-puff smoke-1"></span>
-        <span class="smoke-puff smoke-2"></span>
-        <span class="smoke-puff smoke-3"></span>
-        <span class="smoke-puff smoke-4"></span>
-      </div>
 
       <!-- Bus Icon Container (사용자가 지정한 라운드 박스 아이콘) -->
       <div
@@ -80,60 +72,6 @@ defineProps({
   }
   100% {
     transform: translateY(-1px) rotate(1deg);
-  }
-}
-
-/* 연기 뿜기 (Exhaust Smoke Puffs) */
-.smoke-puff {
-  position: absolute;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(165, 180, 252, 0.8) 0%, rgba(224, 231, 255, 0.4) 60%, rgba(241, 245, 249, 0) 100%);
-  animation: exhaustPuff 1.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
-}
-
-.smoke-1 {
-  width: 14px;
-  height: 14px;
-  bottom: 0px;
-  right: 0px;
-  animation-delay: 0s;
-}
-
-.smoke-2 {
-  width: 18px;
-  height: 18px;
-  bottom: 4px;
-  right: 6px;
-  animation-delay: 0.3s;
-}
-
-.smoke-3 {
-  width: 22px;
-  height: 22px;
-  bottom: 8px;
-  right: 12px;
-  animation-delay: 0.6s;
-}
-
-.smoke-4 {
-  width: 26px;
-  height: 26px;
-  bottom: 12px;
-  right: 18px;
-  animation-delay: 0.9s;
-}
-
-@keyframes exhaustPuff {
-  0% {
-    transform: scale(0.2) translate(0, 0);
-    opacity: 0.9;
-  }
-  50% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(1.6) translate(-36px, -12px);
-    opacity: 0;
   }
 }
 

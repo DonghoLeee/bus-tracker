@@ -173,7 +173,7 @@ const handleDelete = (bookmark) => {
           </div>
 
           <!-- Arrival Information Display -->
-          <div v-if="item.arrivalInfo && item.arrivalInfo.isOperating && item.arrivalInfo.predictTimeSec1 != null && item.arrivalInfo.predictTimeSec1 > 0" class="space-y-2.5">
+          <div v-if="item.arrivalInfo && item.arrivalInfo.isOperating && item.arrivalInfo.predictTimeSec1 != null && item.arrivalInfo.predictTimeSec1 >= 0" class="space-y-2.5">
             
             <!-- 1st Bus Arrival (Main) -->
             <div

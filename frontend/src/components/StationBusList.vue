@@ -204,7 +204,7 @@ const getDirectionTextClass = (direction) => {
               <!-- Arrival Countdown or Status Badge -->
               <div class="flex flex-col items-start sm:items-end justify-center min-w-0 flex-1 sm:flex-initial text-left sm:text-right pr-1">
                 <!-- 1st Arrival (When active arrival prediction exists) -->
-                <template v-if="bus.isOperating && bus.predictTimeSec1 != null && bus.predictTimeSec1 > 0">
+                <template v-if="bus.isOperating && bus.predictTimeSec1 != null && bus.predictTimeSec1 >= 0">
                   <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
                     <span class="text-xs sm:text-sm font-bold whitespace-nowrap" :class="bus.predictTimeSec1 <= 180 ? 'text-rose-600 animate-pulse' : 'text-slate-800'">
                       {{ bus.predictTimeSec1 < 50 ? '곧 도착' : formatSeconds(bus.predictTimeSec1) + ' 후' }}

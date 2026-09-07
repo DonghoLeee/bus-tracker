@@ -21,6 +21,9 @@ export const useBookmarkStore = defineStore('bookmark', {
     refreshingStationBuses: false,
     stationBusFetchError: null, // null이면 정상, 문자열이면 오류 메시지
 
+    // 실시간 초 단위 시간 흐름 추적용 타임스탬프
+    lastTickTimestamp: Date.now(),
+
     // 토스트 알림
     toastMessage: null,
     toastType: 'info', // success, info, warning, error
@@ -249,24 +252,66 @@ export const useBookmarkStore = defineStore('bookmark', {
       this.setupAutoRefresh();
     },
 
+    tickArrivalTimes(deltaSec = 1) {
+      if (!deltaSec || deltaSec <= 0) return;
+
+      // 1. 등록된 북마크 실시간 도착 초 차감 (기본적으로 시간이 흐르도록)
+      if (Array.isArray(this.bookmarks)) {
+        this.bookmarks.forEach((b) => {
+          const info = b.arrivalInfo;
+          if (info && info.isOperating) {
+            if (typeof info.predictTimeSec1 === 'number' && info.predictTimeSec1 > 0) {
+              info.predictTimeSec1 = Math.max(0, info.predictTimeSec1 - deltaSec);
+            }
+            if (typeof info.predictTimeSec2 === 'number' && info.predictTimeSec2 > 0) {
+              info.predictTimeSec2 = Math.max(0, info.predictTimeSec2 - deltaSec);
+            }
+          }
+        });
+      }
+
+      // 2. 정류장 상세 모달 내 실시간 도착 초 차감
+      if (Array.isArray(this.stationBuses)) {
+        this.stationBuses.forEach((bus) => {
+          if (bus.isOperating) {
+            if (typeof bus.predictTimeSec1 === 'number' && bus.predictTimeSec1 > 0) {
+              bus.predictTimeSec1 = Math.max(0, bus.predictTimeSec1 - deltaSec);
+            }
+            if (typeof bus.predictTimeSec2 === 'number' && bus.predictTimeSec2 > 0) {
+              bus.predictTimeSec2 = Math.max(0, bus.predictTimeSec2 - deltaSec);
+            }
+          }
+        });
+      }
+    },
+
     setupAutoRefresh() {
       if (this.timerId) clearInterval(this.timerId);
       if (this.countdownTimerId) clearInterval(this.countdownTimerId);
 
-      if (this.refreshIntervalSec <= 0) return;
+      this.lastTickTimestamp = Date.now();
+      this.secondsUntilNextRefresh = this.refreshIntervalSec > 0 ? this.refreshIntervalSec : 0;
 
-      this.secondsUntilNextRefresh = this.refreshIntervalSec;
-
-      // 1초마다 카운트다운
+      // 매 1초마다 실행: 도착 시간 초 단위 실시간 차감 + 주기적 자동 새로고침 진행
       this.countdownTimerId = setInterval(() => {
-        if (this.secondsUntilNextRefresh > 1) {
-          this.secondsUntilNextRefresh -= 1;
-        } else {
-          this.secondsUntilNextRefresh = this.refreshIntervalSec;
-          this.refreshArrivalsSilently();
-          if (this.selectedStation) {
-            // 팝업 열려 있을 시 깜빡임 없는 silent upsert 갱신
-            this.selectStation(this.selectedStation, true);
+        const now = Date.now();
+        const elapsedSec = Math.max(1, Math.round((now - this.lastTickTimestamp) / 1000));
+        this.lastTickTimestamp = now;
+
+        // 1. 기본적으로 모든 버스의 도착 시간이 실시간(초 단위)으로 흐르도록 차감
+        this.tickArrivalTimes(elapsedSec);
+
+        // 2. 자동 새로고침이 켜져 있는 경우 (refreshIntervalSec > 0)
+        if (this.refreshIntervalSec > 0) {
+          if (this.secondsUntilNextRefresh > elapsedSec) {
+            this.secondsUntilNextRefresh -= elapsedSec;
+          } else {
+            this.secondsUntilNextRefresh = this.refreshIntervalSec;
+            this.refreshArrivalsSilently();
+            if (this.selectedStation) {
+              // 팝업 열려 있을 시 깜빡임 없는 silent upsert로 서버 데이터와 재동기화
+              this.selectStation(this.selectedStation, true);
+            }
           }
         }
       }, 1000);

@@ -1,43 +1,33 @@
 package com.bustracker.config;
 
-import com.bustracker.dto.BookmarkRequest;
-import com.bustracker.service.BookmarkService;
+import com.bustracker.repository.BookmarkRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
-    private final BookmarkService bookmarkService;
+    private final BookmarkRepository bookmarkRepository;
 
-    public DataInitializer(BookmarkService bookmarkService) {
-        this.bookmarkService = bookmarkService;
+    public DataInitializer(BookmarkRepository bookmarkRepository) {
+        this.bookmarkRepository = bookmarkRepository;
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
-        log.info("기본 샘플 북마크 데이터 초기화...");
         try {
-            bookmarkService.addBookmark(BookmarkRequest.builder()
-                    .stationId("ST_1001").stationName("강남역").arsId("22011")
-                    .busRouteId("RT_140").busRouteName("140").busType("MAIN")
-                    .direction("도봉산역 ↔ 내곡동").memo("출근용 버스").build());
-
-            bookmarkService.addBookmark(BookmarkRequest.builder()
-                    .stationId("ST_1001").stationName("강남역").arsId("22011")
-                    .busRouteId("RT_9408").busRouteName("9408").busType("RAPID")
-                    .direction("분당 구미동 ↔ 신논현역").memo("퇴근용 광역").build());
-
-            bookmarkService.addBookmark(BookmarkRequest.builder()
-                    .stationId("ST_1003").stationName("광화문.세종문화회관").arsId("01126")
-                    .busRouteId("RT_700").busRouteName("700").busType("MAIN")
-                    .direction("대화동 ↔ 숭례문").memo("약속 장소 이동").build());
-
-            log.info("기본 샘플 북마크 등록 완료");
+            // 이전에 자동 삽입되었던 기본 샘플 북마크(140, 9408, 700) 데이터 정리
+            bookmarkRepository.deleteByStationIdAndBusRouteId("ST_1001", "RT_140");
+            bookmarkRepository.deleteByStationIdAndBusRouteId("ST_1001", "RT_9408");
+            bookmarkRepository.deleteByStationIdAndBusRouteId("ST_1003", "RT_700");
+            log.info("기본 샘플 북마크 정리 완료 (기본 버스 초기화 비활성화)");
         } catch (Exception e) {
-            log.warn("샘플 북마크 초기화 중 오류 발생 (무시됨): {}", e.getMessage());
+            log.warn("샘플 북마크 정리 중 오류 발생 (무시됨): {}", e.getMessage());
         }
     }
 }
+

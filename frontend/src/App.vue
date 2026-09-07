@@ -24,7 +24,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-indigo-500 selection:text-white">
+  <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800 antialiased selection:bg-indigo-500 selection:text-white overflow-x-hidden w-full max-w-full">
     
     <!-- Top Navigation Header with Unified Title & Tagline -->
     <Header />

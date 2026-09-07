@@ -256,11 +256,13 @@ const getDirectionTextClass = (direction) => {
       </div>
 
       <!-- Modal Footer -->
-      <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-100 flex items-center justify-between">
-        <span class="text-xs text-slate-400">등록된 버스는 메인 화면 대시보드에서 실시간으로 추적됩니다.</span>
+      <div class="bg-slate-50 px-4 sm:px-6 py-3.5 border-t border-slate-100 flex items-center justify-between gap-3">
+        <span class="text-xs text-slate-400 min-w-0 flex-1 break-keep">
+          등록된 버스는 메인 화면 대시보드에서 실시간으로 추적됩니다.
+        </span>
         <button
           @click="store.clearSelectedStation()"
-          class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
+          class="shrink-0 whitespace-nowrap px-4 py-2 bg-slate-200 hover:bg-slate-300 active:bg-slate-400 text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-2xs min-w-[60px] text-center"
         >
           닫기
         </button>

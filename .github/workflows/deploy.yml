@@ -60,7 +60,7 @@ jobs:
           envs: DOCKERHUB_USERNAME
           script: |
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            mkdir -p ~/app && cd ~/app
+            mkdir -p ~/app/data && cd ~/app
 
             # 1. SSL 인증서 확인 및 최초 발급
             if [ ! -f /etc/letsencrypt/live/seoul-bus.duckdns.org/fullchain.pem ]; then
@@ -95,6 +95,8 @@ jobs:
               '      - "8080:8080"' \
               "    environment:" \
               "      - SPRING_PROFILES_ACTIVE=prod" \
+              "    volumes:" \
+              '      - ./data:/app/data' \
               "" \
               "  frontend:" \
               "    image: ${DOCKERHUB_USERNAME}/bus-tracker-frontend:latest" \

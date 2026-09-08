@@ -1,8 +1,9 @@
 # 🚌 Bus Tracker
 
-실시간 서울 버스 도착 정보 조회 서비스
+사용이 쉬운 실시간 서울 버스 도착 정보 조회 서비스
 
 🔗 **서비스 링크:** [https://seoul-bus.duckdns.org](https://seoul-bus.duckdns.org)
+
 
 
 ---

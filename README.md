@@ -1,6 +1,6 @@
 # 🚌 Bus Tracker
 
-실시간 서울/경기 버스 도착 정보 조회 및 다기기 즐겨찾기 동기화 서비스
+실시간 서울 버스 도착 정보 조회 및 다기기 즐겨찾기 동기화 서비스
 
 🔗 **서비스 링크:** [https://seoul-bus.duckdns.org](https://seoul-bus.duckdns.org)
 
@@ -8,11 +8,12 @@
 
 ## 🛠️ 핵심 기술 스택
 
-* **Frontend:** Vue 3, Vite, TailwindCSS
-* **Backend:** Java 21, Spring Boot 3, Spring Data JPA
-* **Database:** H2 (MySQL Mode, 영구 볼륨 연동)
+* **Frontend:** Vue 3
+* **Backend:** Java 21, Spring Boot 3
+* **Database:** H2 (MySQL Mode)
 * **Infra & DevOps:** GCP Compute Engine, Docker & Docker Compose, Nginx, Let's Encrypt (HTTPS), DuckDNS
 * **CI/CD:** GitHub Actions
+
 
 ---
 

@@ -18,6 +18,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # 빌드 결과물 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 80 443
 
 CMD ["nginx", "-g", "daemon off;"]
+

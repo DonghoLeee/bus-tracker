@@ -62,6 +62,21 @@ jobs:
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             mkdir -p ~/app && cd ~/app
 
+            # 1. SSL 인증서 확인 및 최초 발급
+            if [ ! -f /etc/letsencrypt/live/seoul-bus.duckdns.org/fullchain.pem ]; then
+              echo "=== SSL 인증서 최초 발급 시도 (Certbot) ==="
+              which certbot >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y certbot)
+              sudo docker stop bus-tracker-frontend bus-tracker-app 2>/dev/null || true
+              sudo certbot certonly --standalone -d seoul-bus.duckdns.org --non-interactive --agree-tos -m hypedongdong@gmail.com || {
+                echo "Certbot 발급 실패, 임시 자체 서명 인증서 생성"
+                sudo mkdir -p /etc/letsencrypt/live/seoul-bus.duckdns.org
+                sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+                  -keyout /etc/letsencrypt/live/seoul-bus.duckdns.org/privkey.pem \
+                  -out /etc/letsencrypt/live/seoul-bus.duckdns.org/fullchain.pem \
+                  -subj "/CN=seoul-bus.duckdns.org"
+              }
+            fi
+
             # 기존 컨테이너 전부 중지 (구 서비스명 app 포함)
             sudo docker compose down --remove-orphans 2>/dev/null || true
             sudo docker stop bus-tracker-app bus-tracker-backend bus-tracker-frontend 2>/dev/null || true
@@ -87,6 +102,9 @@ jobs:
               "    restart: always" \
               "    ports:" \
               '      - "80:80"' \
+              '      - "443:443"' \
+              "    volumes:" \
+              '      - /etc/letsencrypt:/etc/letsencrypt:ro' \
               "    depends_on:" \
               "      - backend" \
               > docker-compose.yml
@@ -102,6 +120,10 @@ jobs:
             # 미사용 이미지 정리
             sudo docker image prune -f || docker image prune -f
 
+            # 자동 갱신 크론탭 설정
+            (sudo crontab -l 2>/dev/null | grep -v "certbot renew"; echo "0 3 1,15 * * certbot renew --quiet --pre-hook 'docker stop bus-tracker-frontend' --post-hook 'docker start bus-tracker-frontend'") | sudo crontab -
+
             # 상태 확인
             echo "=== 실행 중인 컨테이너 ==="
             sudo docker compose ps
+

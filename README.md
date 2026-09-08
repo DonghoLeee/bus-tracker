@@ -8,23 +8,13 @@
 
 ---
 
-## 🛠️ 핵심 기술 스택
-
-* **Frontend:** Vue 3
-* **Backend:** Java 21, Spring Boot 3
-* **Database:** H2 (MySQL Mode)
-* **Infra & DevOps:** GCP Compute Engine, Docker & Docker Compose, Nginx, Let's Encrypt (HTTPS), DuckDNS
-* **CI/CD:** GitHub Actions
-
-
----
-
-## 🤖 개발 환경 & AI 도구
-
-* **IDE:** Google Antigravity IDE
-* **AI Agent:** Antigravity AI Pair Programming Agent
-* **AI Models:** Claude 3.5 / 3.7 Sonnet, Gemini Flash
-  * 아키텍처 설계, Spring Boot & Vue 3 구현, Docker & Nginx SSL 자동화, CI/CD 배포 트러블슈팅에 AI 에이전트와 페어 프로그래밍 협업
+- **주요 사용 기술**
+    - Google Antigravity, AI Model(Gemini, Claude Sonnet)
+    - Frontend: Vue 3
+    - Backend: Java 21, Spring Boot 3
+    - Database: H2 (MySQL Mode)
+    - Infra & DevOps: GCP Compute Engine, Docker & Docker Compose, Nginx, Let's Encrypt (HTTPS), DuckDNS
+    - CI/CD: GitHub Actions
 
 ---
 
